@@ -1,0 +1,43 @@
+COMMON SHARED key$, errorflag 'Variables shared between all subs
+ON ERROR GOTO handler 'location to goto if error occurs
+key$ = "<Custom Key Here>" 'GameKey here. I personally use hex just because it makes it longer but you can do whatever you like
+CALL KeyCheck 'Runs sub KeyCheck
+
+handler: 'label
+errorflag = ERR 'Keep track of where error occured
+RESUME NEXT 'proceeds to next statement
+
+SUB CreateKey 'sub name
+OPEN "GameKey.key" FOR OUTPUT AS #1 'Creates file 
+PRINT #1, key$ 'writes key$ to file
+CLOSE #1       'closes file
+CALL KeyCheck 'runs sub
+END SUB
+
+SUB KeyCheck
+OPEN "GameKey.key" FOR INPUT AS #1 'opens file to read
+IF errorflag <> 0 THEN
+    errorflag = 0 'if this IF statement doesn't find the file it prompts user to press enter so it can be created
+    CLOSE
+    PRINT "File Not Found - Press Enter to Create Key."
+    INPUT "", keyfilenotfound$ 'if enter is pressed then it creates key file
+    CALL CreateKey 'reruns sub to create key
+END IF
+DO UNTIL EOF(1) 'but if file is found then it checks for end of file
+    INPUT #1, sigkey$ 'stores game key in sigkey$
+    a$ = a$ + sigkey$ 'stores sigkey$ in a$
+LOOP
+CLOSE #1 'closes file
+IF a$ = key$ THEN 'checks file key against original key
+    PRINT "Signing Key: "; a$ 'if its correct prints it
+ELSE ' if it isn't then its been deleted or tampered with and produces this error
+    PRINT "Signed Key is Invalid. Please get Correct Signature Key."
+    PRINT "            This May Not be Your Fault."
+    PRINT "If You Downloaded This From Someone Other Then <Name Here> Then"
+    PRINT "You Need to Email <Name Here> at <Email> to get the Key."
+    Print "In Email Please Attach Link of URL Where This Program was Downloaded."
+    PRINT "Program Quarantine Mode Active!..."
+    END
+END IF
+errorflag = 0 ' resets errorflag
+END SUB
